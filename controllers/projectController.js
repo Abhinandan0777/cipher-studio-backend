@@ -20,7 +20,14 @@ const createProject = async (req, res) => {
     // Create default React files for the new project
     const FileMetadata = require('../models/FileMetadata');
     const s3Service = require('../services/s3Service');
-    const { v4: uuidv4 } = require('uuid');
+    // Simple UUID v4 replacement using crypto
+const uuidv4 = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
     const defaultFiles = [
       {
@@ -189,7 +196,7 @@ function getMimeType(fileName) {
     'xml': 'application/xml',
     'svg': 'image/svg+xml'
   };
-  
+
   return mimeTypes[extension] || 'text/plain';
 }
 
@@ -239,19 +246,19 @@ const getProject = async (req, res) => {
 
     const mongoose = require('mongoose');
     let project = null;
-    
+
     // Try different approaches to find the project
     try {
       // Method 1: Try as ObjectId if it's valid format
       if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
         project = await Project.findById(id).select('-__v');
       }
-      
+
       // Method 2: If not found, try as string in _id field
       if (!project) {
         project = await Project.findOne({ _id: id }).select('-__v');
       }
-      
+
     } catch (castError) {
       // If casting fails, try finding by string
       project = await Project.findOne({ _id: id }).select('-__v');
@@ -302,7 +309,7 @@ const updateProject = async (req, res) => {
 
     const mongoose = require('mongoose');
     let project = null;
-    
+
     // Try different approaches to update the project
     try {
       // Method 1: Try as ObjectId if it's valid format
@@ -313,7 +320,7 @@ const updateProject = async (req, res) => {
           { new: true, runValidators: true }
         ).select('-__v');
       }
-      
+
       // Method 2: If not found, try as string in _id field
       if (!project) {
         project = await Project.findOneAndUpdate(
@@ -322,7 +329,7 @@ const updateProject = async (req, res) => {
           { new: true, runValidators: true }
         ).select('-__v');
       }
-      
+
     } catch (castError) {
       // If casting fails, try updating by string
       project = await Project.findOneAndUpdate(
@@ -374,19 +381,19 @@ const deleteProject = async (req, res) => {
     const project = await handleDatabaseOperation(async () => {
       const mongoose = require('mongoose');
       let proj = null;
-      
+
       // Try different approaches to find the project
       try {
         // Method 1: Try as ObjectId if it's valid format
         if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
           proj = await Project.findById(id);
         }
-        
+
         // Method 2: If not found, try as string in _id field
         if (!proj) {
           proj = await Project.findOne({ _id: id });
         }
-        
+
       } catch (castError) {
         // If casting fails, try finding by string
         proj = await Project.findOne({ _id: id });
@@ -427,7 +434,7 @@ const deleteProject = async (req, res) => {
     // Delete the project
     await handleDatabaseOperation(async () => {
       const mongoose = require('mongoose');
-      
+
       // Try different approaches to delete the project
       try {
         // Method 1: Try as ObjectId if it's valid format
@@ -437,7 +444,7 @@ const deleteProject = async (req, res) => {
           // Method 2: Delete by string _id
           await Project.findOneAndDelete({ _id: id });
         }
-        
+
       } catch (castError) {
         // If casting fails, try deleting by string
         await Project.findOneAndDelete({ _id: id });
