@@ -1,5 +1,14 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
+
+// Simple UUID v4 replacement using crypto
+const uuidv4 = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 // Configure AWS SDK with validation
 const validateAWSConfig = () => {
